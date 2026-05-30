@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { Sidebar } from '@/components/dashboard/sidebar';
-import ClientOnly from '@/components/dashboard/client-only';
 import './globals.css';
 
 const geistSans = Geist({
@@ -34,9 +33,7 @@ export default function RootLayout({
         className="min-h-full flex flex-col bg-zinc-950 text-zinc-100 selection:bg-violet-500/30 selection:text-violet-100"
         suppressHydrationWarning
       >
-        <ClientOnly>
-          <Sidebar>{children}</Sidebar>
-        </ClientOnly>
+        <Sidebar>{children}</Sidebar>
       </body>
     </html>
   );

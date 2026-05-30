@@ -1,12 +1,11 @@
-"use client";
+'use client';
 
 import * as React from 'react';
-import { RefreshCcw, Landmark, Users, Clock, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Landmark, Users, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { Metrics } from '@/components/dashboard/metrics';
 import { UserTable } from '@/components/dashboard/user-table';
 import { Sheet } from '@/components/ui/modal';
 import { UserModal } from '@/components/dashboard/user-modal';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { UsersAPIResponse, User } from '@/types/user';
 
@@ -16,8 +15,6 @@ interface DashboardClientProps {
 
 export default function DashboardClient({ initialData }: DashboardClientProps) {
   const [users, setUsers] = React.useState<User[]>(initialData.users || []);
-  const [isRefreshing, setIsRefreshing] = React.useState(false);
-  const [lastRefreshed, setLastRefreshed] = React.useState<Date>(new Date());
   const [error, setError] = React.useState<string | null>(null);
   const [mounted, setMounted] = React.useState(false);
 
@@ -37,8 +34,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
   };
 
   // Client-Side Dynamic Data Re-fetching
-  const handleRefresh = async (silent = false) => {
-    if (!silent) setIsRefreshing(true);
+  const fetchLiveData = async () => {
     setError(null);
     try {
       const res = await fetch('/api/users', {
@@ -50,33 +46,26 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
       const data: UsersAPIResponse = await res.json();
       if (data.success) {
         setUsers(data.users || []);
-        setLastRefreshed(new Date());
       } else {
         throw new Error('API returned success=false on load');
       }
     } catch (err: any) {
       console.error('Error fetching live users client-side:', err);
       setError('Failed to connect to the live API endpoint. Please check your internet connection.');
-    } finally {
-      if (!silent) setIsRefreshing(false);
     }
   };
 
   // Mount effect to sync live data directly in user's browser
   React.useEffect(() => {
     setMounted(true);
-    handleRefresh(true);
+    fetchLiveData();
   }, []);
 
-  const formatLastRefreshed = () => {
-    if (!mounted) return '--:--:--';
-    return lastRefreshed.toLocaleTimeString('en-IN', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: true
-    });
-  };
+  if (!mounted) {
+    // Return a clean, dark template envelope during server rendering 
+    // to match layout structure and ensure 100% hydration success.
+    return <div className="min-h-screen bg-zinc-950" />;
+  }
 
   return (
     <div className="space-y-8 pb-16">
@@ -96,29 +85,6 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
           <p className="text-sm text-zinc-400 mt-1">
             Manage WhatsApp client registration, onboarding steps, and digital checkout summaries.
           </p>
-        </div>
-
-        {/* Dynamic Controls & Logs */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 shrink-0">
-          <div className="flex flex-col text-right justify-center">
-            <span className="text-xs text-zinc-500 font-medium flex items-center gap-1 sm:justify-end">
-              <Clock className="h-3 w-3" /> Last fetched: {formatLastRefreshed()}
-            </span>
-            {error && (
-              <span className="text-[10px] text-rose-400 font-semibold flex items-center gap-1 mt-0.5">
-                <AlertTriangle className="h-3 w-3 shrink-0" /> {error}
-              </span>
-            )}
-          </div>
-          <Button
-            variant="outline"
-            onClick={() => handleRefresh()}
-            disabled={isRefreshing}
-            className="flex items-center justify-center gap-2 cursor-pointer border-zinc-800 hover:bg-zinc-900 hover:border-zinc-700 text-zinc-200 font-bold transition-all text-xs h-9 px-4.5"
-          >
-            <RefreshCcw className={`h-3.5 w-3.5 ${isRefreshing ? 'animate-spin text-violet-400' : ''}`} />
-            {isRefreshing ? 'Syncing...' : 'Reload Data'}
-          </Button>
         </div>
       </div>
 
