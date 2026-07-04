@@ -4,7 +4,7 @@ import * as React from 'react';
 import { 
   Search, Filter, ChevronLeft, ChevronRight, Eye, 
   ArrowUpDown, RefreshCcw, Landmark, SlidersHorizontal,
-  MapPin, Phone, Briefcase, X
+  MapPin, Phone, Briefcase, X, Image as ImageIcon
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -41,6 +41,7 @@ export function UserTable({ users, onViewDetails }: UserTableProps) {
   const [statusFilter, setStatusFilter] = React.useState('all');
   const [stepFilter, setStepFilter] = React.useState('all');
   const [selectedServicesText, setSelectedServicesText] = React.useState<string | null>(null);
+  const [previewImageUrl, setPreviewImageUrl] = React.useState<string | null>(null);
 
   // Sorting States
   const [sortField, setSortField] = React.useState<SortField>('createdAt');
@@ -353,15 +354,39 @@ export function UserTable({ users, onViewDetails }: UserTableProps) {
 
                   {/* Action trigger */}
                   <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onViewDetails(user)}
-                      className="opacity-70 group-hover:opacity-100 text-slate-500 hover:text-slate-900 hover:bg-slate-100 cursor-pointer"
-                      title="View Full Profile Details"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center justify-center gap-1.5">
+                      {/* Image Preview Action */}
+                      {(() => {
+                        const imgUrl = user.registrationData?.posterS3Url;
+                        const hasImg = !!imgUrl;
+                        return (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            disabled={!hasImg}
+                            onClick={() => imgUrl && setPreviewImageUrl(imgUrl)}
+                            className={`h-8 w-8 rounded-lg border border-transparent transition-all cursor-pointer ${
+                              hasImg 
+                                ? 'text-violet-650 hover:text-violet-750 hover:bg-violet-50' 
+                                : 'text-slate-350 disabled:opacity-30 disabled:hover:bg-transparent cursor-not-allowed'
+                            }`}
+                            title={hasImg ? "Preview daily sent image" : "No sent image available"}
+                          >
+                            <ImageIcon className="h-4 w-4" />
+                          </Button>
+                        );
+                      })()}
+
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onViewDetails(user)}
+                        className="h-8 w-8 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 cursor-pointer"
+                        title="View Full Profile Details"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               );
@@ -467,6 +492,69 @@ export function UserTable({ users, onViewDetails }: UserTableProps) {
                 className="cursor-pointer font-bold border-slate-200 hover:bg-slate-50"
               >
                 Close details
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Image Preview Modal Overlay */}
+      {previewImageUrl !== null && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fade-in"
+          onClick={() => setPreviewImageUrl(null)}
+        >
+          <div 
+            className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-md w-full overflow-hidden p-6 animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-violet-50 text-violet-650 border border-violet-100">
+                  <ImageIcon className="h-4 w-4" />
+                </div>
+                <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider">
+                  Sent Content Preview
+                </h3>
+              </div>
+              <button
+                onClick={() => setPreviewImageUrl(null)}
+                className="p-1 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            
+            <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-slate-50 border border-slate-200/85 flex items-center justify-center p-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img 
+                src={previewImageUrl} 
+                alt="Daily sent template artwork" 
+                className="w-full h-full object-contain rounded-lg"
+                onError={(e) => {
+                  e.currentTarget.src = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80';
+                }}
+              />
+            </div>
+
+            <div className="mt-5 flex items-center justify-between gap-3">
+              <a 
+                href={previewImageUrl} 
+                target="_blank" 
+                rel="noreferrer"
+              >
+                <Button
+                  variant="outline"
+                  className="flex items-center gap-1.5 text-xs font-bold border-slate-200 hover:bg-slate-50 cursor-pointer"
+                >
+                  Open Original
+                </Button>
+              </a>
+              <Button
+                variant="default"
+                onClick={() => setPreviewImageUrl(null)}
+                className="cursor-pointer font-bold"
+              >
+                Close Preview
               </Button>
             </div>
           </div>

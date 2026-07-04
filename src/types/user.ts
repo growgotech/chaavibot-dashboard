@@ -9,6 +9,7 @@ export interface UserRegistrationData {
   logoPath: string | null;
   logoUrl: string | null;
   postFrequency: string;
+  posterS3Url?: string | null;  // S3 preview URL key inside registration data
 }
 
 export interface UserPayment {
