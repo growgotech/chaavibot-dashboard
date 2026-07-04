@@ -16,32 +16,32 @@ export function Sidebar({ children }: SidebarProps) {
   const [isOpen, setIsOpen] = React.useState(false);
 
   const navigationItems = [
-    { name: 'Overview', icon: LayoutDashboard, active: true },
-    { name: 'User Management', icon: Users, active: true },
-    { name: 'Settings', icon: Settings, active: false, comingSoon: true },
+    { name: 'Overview', icon: LayoutDashboard, current: false, enabled: false, comingSoon: true },
+    { name: 'User Management', icon: Users, current: true, enabled: true },
+    { name: 'Settings', icon: Settings, current: false, enabled: false, comingSoon: true },
   ];
 
   const sidebarContent = (
-    <div className="flex flex-col h-full bg-zinc-950 border-r border-zinc-800/80 p-5 justify-between">
+    <div className="flex flex-col h-full bg-[#3b32a6] p-5 justify-between">
       <div className="space-y-7">
         {/* Brand Logo Header */}
-        <div className="flex items-center gap-2.5 px-1 pb-2">
-          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-950/40">
-            <Radio className="h-5 w-5 text-white animate-pulse" />
+        <div className="flex items-center gap-2.5 px-1 pb-4 border-b border-white/10">
+          <div className="h-9 w-9 rounded-xl bg-white flex items-center justify-center shadow-md">
+            <Radio className="h-5 w-5 text-[#3b32a6]" />
           </div>
           <div>
-            <span className="text-lg font-black tracking-tight bg-gradient-to-r from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
-              chaavi<span className="text-violet-400">.ai</span>
+            <span className="text-lg font-extrabold tracking-tight text-white">
+              chaavi<span className="text-indigo-200 font-black">.ai</span>
             </span>
-            <div className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest leading-none">
+            <div className="text-[9px] font-bold text-indigo-300 uppercase tracking-widest leading-none mt-0.5">
               Control Panel
             </div>
           </div>
         </div>
 
         {/* Menu Navigation */}
-        <div className="space-y-1">
-          <span className="text-[10px] uppercase font-bold tracking-wider text-zinc-500 px-3">
+        <div className="space-y-2">
+          <span className="text-[10px] uppercase font-bold tracking-wider text-indigo-200/60 px-3">
             Main Console
           </span>
           <nav className="mt-2 space-y-1.5">
@@ -50,19 +50,22 @@ export function Sidebar({ children }: SidebarProps) {
               return (
                 <button
                   key={idx}
-                  disabled={!item.active}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-300 font-semibold group cursor-pointer ${
-                    item.active
-                      ? 'bg-violet-950/20 text-white border border-violet-900/30'
-                      : 'text-zinc-500 hover:text-zinc-300 border border-transparent'
+                  disabled={!item.enabled}
+                  className={`relative w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all duration-300 font-semibold group cursor-pointer ${
+                    item.current
+                      ? 'bg-white/12 text-white border border-white/10 shadow-xs'
+                      : 'text-indigo-200 hover:text-white hover:bg-white/5 border border-transparent disabled:opacity-40 disabled:cursor-not-allowed'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <Icon className={`h-4.5 w-4.5 ${item.active ? 'text-violet-400' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
+                  {item.current && (
+                    <div className="absolute left-0 top-2.5 bottom-2.5 w-1 rounded-r bg-white" />
+                  )}
+                  <div className={`flex items-center gap-3 ${item.current ? 'pl-1.5' : ''}`}>
+                    <Icon className={`h-4.5 w-4.5 ${item.current ? 'text-white' : 'text-indigo-300 group-hover:text-white'}`} />
                     <span>{item.name}</span>
                   </div>
                   {item.comingSoon && (
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-violet-400/80 bg-violet-950/30 px-1.5 py-0.5 rounded border border-violet-900/20">
+                    <span className="text-[8px] font-bold uppercase tracking-wider text-indigo-300 bg-white/5 px-1.5 py-0.5 rounded border border-white/5">
                       Soon
                     </span>
                   )}
@@ -75,20 +78,20 @@ export function Sidebar({ children }: SidebarProps) {
       </div>
 
       {/* Admin Profile block */}
-      <div className="border-t border-zinc-900 pt-4 flex items-center justify-between gap-3">
+      <div className="border-t border-white/10 pt-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-full bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center text-sm font-bold text-white shadow shadow-violet-950">
-            P
+          <div className="h-9 w-9 rounded-full bg-white flex items-center justify-center text-sm font-bold text-[#3b32a6] shadow">
+            C
           </div>
           <div>
             <div className="text-sm font-bold text-white leading-tight">Chaavi.ai</div>
-            <div className="text-[10px] text-zinc-500 font-semibold uppercase tracking-wider flex items-center gap-0.5 mt-0.5">
-              <ShieldCheck className="h-3 w-3 text-violet-400 shrink-0" />
+            <div className="text-[10px] text-indigo-200 font-semibold uppercase tracking-wider flex items-center gap-0.5 mt-0.5">
+              <ShieldCheck className="h-3 w-3 text-white shrink-0" />
               <span>Admin</span>
             </div>
           </div>
         </div>
-        <button className="p-2 rounded-lg border border-zinc-900 bg-zinc-950/40 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900 transition-all cursor-pointer">
+        <button className="p-2 rounded-lg border border-white/10 bg-white/5 text-indigo-200 hover:text-white hover:bg-white/10 transition-all cursor-pointer">
           <LogOut className="h-4.5 w-4.5" />
         </button>
       </div>
@@ -104,11 +107,11 @@ export function Sidebar({ children }: SidebarProps) {
 
       {/* 2. Mobile Responsive Topbar */}
       <div className="flex flex-col flex-1 h-full min-h-screen md:pl-64">
-        <header className="md:hidden flex items-center justify-between h-16 bg-zinc-950 border-b border-zinc-800/80 px-4 sticky top-0 z-40">
+        <header className="md:hidden flex items-center justify-between h-16 bg-[#3b32a6] text-white border-b border-indigo-900/50 px-4 sticky top-0 z-40">
           <div className="flex items-center gap-2">
-            <Radio className="h-5 w-5 text-violet-500" />
+            <Radio className="h-5 w-5 text-white" />
             <span className="font-black text-white text-base">
-              chaavi<span className="text-violet-400">.ai</span>
+              chaavi<span className="text-indigo-200">.ai</span>
             </span>
           </div>
 
@@ -116,7 +119,7 @@ export function Sidebar({ children }: SidebarProps) {
             variant="ghost"
             size="icon"
             onClick={() => setIsOpen(!isOpen)}
-            className="p-1 rounded-lg border border-zinc-800 text-zinc-400 cursor-pointer"
+            className="p-1 rounded-lg border border-white/10 text-white hover:bg-white/10 cursor-pointer"
           >
             {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
@@ -127,18 +130,18 @@ export function Sidebar({ children }: SidebarProps) {
           <div className="fixed inset-0 z-40 md:hidden flex">
             {/* Backdrop */}
             <div 
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity duration-300"
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity duration-300"
               onClick={() => setIsOpen(false)}
             />
             {/* Menu container */}
-            <div className="relative w-64 max-w-xs h-full bg-zinc-950 animate-slide-in">
+            <div className="relative w-64 max-w-xs h-full bg-white animate-slide-in">
               {sidebarContent}
             </div>
           </div>
         )}
 
         {/* 4. Page Main Viewport Panel */}
-        <main className="flex-1 p-6 md:p-8 bg-zinc-950 text-zinc-100 overflow-y-auto">
+        <main className="flex-1 p-6 md:p-8 bg-slate-50 text-slate-800 overflow-y-auto">
           {children}
         </main>
       </div>

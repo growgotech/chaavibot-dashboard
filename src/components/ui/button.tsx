@@ -9,11 +9,11 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'default', size = 'default', ...props }, ref) => {
     const variantStyles = {
-      default: 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-500 hover:to-indigo-500 shadow-md shadow-violet-950/20 hover:shadow-violet-900/30 focus:ring-violet-500',
-      secondary: 'bg-zinc-800 text-zinc-100 hover:bg-zinc-700 border border-zinc-700/50 focus:ring-zinc-700',
-      outline: 'border border-zinc-800 bg-zinc-950/40 text-zinc-300 hover:bg-zinc-900/80 hover:text-white hover:border-zinc-700 focus:ring-zinc-800',
-      ghost: 'bg-transparent text-zinc-400 hover:bg-zinc-900/80 hover:text-zinc-100 focus:ring-zinc-800',
-      link: 'text-violet-400 hover:text-violet-300 hover:underline underline-offset-4 focus:ring-transparent p-0 h-auto',
+      default: 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-500 hover:to-indigo-500 shadow-md shadow-violet-200/20 hover:shadow-violet-300/30 focus:ring-violet-500',
+      secondary: 'bg-slate-100 text-slate-800 hover:bg-slate-200 border border-slate-200/80 focus:ring-slate-400',
+      outline: 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 focus:ring-slate-200',
+      ghost: 'bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus:ring-slate-200',
+      link: 'text-violet-600 hover:text-violet-500 hover:underline underline-offset-4 focus:ring-transparent p-0 h-auto',
     };
 
     const sizeStyles = {

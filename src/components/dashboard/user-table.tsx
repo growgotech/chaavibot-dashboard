@@ -3,7 +3,8 @@
 import * as React from 'react';
 import { 
   Search, Filter, ChevronLeft, ChevronRight, Eye, 
-  ArrowUpDown, RefreshCcw, Landmark, SlidersHorizontal
+  ArrowUpDown, RefreshCcw, Landmark, SlidersHorizontal,
+  MapPin, Phone, Briefcase, X
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,12 +22,25 @@ interface UserTableProps {
 type SortField = 'createdAt' | 'revenue';
 type SortOrder = 'asc' | 'desc';
 
+export function getBusinessTypeName(type: string | number | undefined): string {
+  if (type === undefined || type === null) return 'N/A';
+  const val = String(type).trim();
+  const mapping: Record<string, string> = {
+    '1': 'Kirana / General Store',
+    '2': 'Medical / Pharmacy Store',
+    '3': 'Doctor / CA / Trainer / Freelancer',
+    '4': 'Salon / Beauty Parlour',
+    '5': 'Other Business',
+  };
+  return mapping[val] || val;
+}
+
 export function UserTable({ users, onViewDetails }: UserTableProps) {
   // Filter States
   const [searchQuery, setSearchQuery] = React.useState('');
   const [statusFilter, setStatusFilter] = React.useState('all');
   const [stepFilter, setStepFilter] = React.useState('all');
-  const [frequencyFilter, setFrequencyFilter] = React.useState('all');
+  const [selectedServicesText, setSelectedServicesText] = React.useState<string | null>(null);
 
   // Sorting States
   const [sortField, setSortField] = React.useState<SortField>('createdAt');
@@ -42,10 +56,7 @@ export function UserTable({ users, onViewDetails }: UserTableProps) {
     return Array.from(new Set(steps));
   }, [users]);
 
-  const uniqueFrequencies = React.useMemo(() => {
-    const freqs = users.map(u => u.registrationData?.postFrequency).filter(Boolean);
-    return Array.from(new Set(freqs));
-  }, [users]);
+
 
   // Combined Live Filtering Logic
   const filteredUsers = React.useMemo(() => {
@@ -55,11 +66,16 @@ export function UserTable({ users, onViewDetails }: UserTableProps) {
       const name = (user.registrationData?.businessName || '').toLowerCase();
       const location = (user.registrationData?.location || '').toLowerCase();
       const phone = (user.phoneNumber || '');
+      const rawBusinessType = (user.registrationData?.businessType || '').toLowerCase();
+      const mappedBusinessType = getBusinessTypeName(user.registrationData?.businessType).toLowerCase();
+      
       const searchMatches = 
         search === '' ||
         name.includes(search) || 
         location.includes(search) || 
-        phone.includes(search);
+        phone.includes(search) ||
+        rawBusinessType.includes(search) ||
+        mappedBusinessType.includes(search);
 
       // 2. Status Match
       const paymentStatus = user.payment?.status || 'unpaid';
@@ -68,13 +84,9 @@ export function UserTable({ users, onViewDetails }: UserTableProps) {
       // 3. Step Match
       const stepMatches = stepFilter === 'all' || user.currentStep === stepFilter;
 
-      // 4. Frequency Match
-      const userFreq = user.registrationData?.postFrequency || '';
-      const freqMatches = frequencyFilter === 'all' || userFreq === frequencyFilter;
-
-      return searchMatches && statusMatches && stepMatches && freqMatches;
+      return searchMatches && statusMatches && stepMatches;
     });
-  }, [users, searchQuery, statusFilter, stepFilter, frequencyFilter]);
+  }, [users, searchQuery, statusFilter, stepFilter]);
 
   // Sorting Logic
   const sortedUsers = React.useMemo(() => {
@@ -101,7 +113,7 @@ export function UserTable({ users, onViewDetails }: UserTableProps) {
   // Reset page to 1 when filters or sorting change
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, statusFilter, stepFilter, frequencyFilter, sortField, sortOrder, rowsPerPage]);
+  }, [searchQuery, statusFilter, stepFilter, sortField, sortOrder, rowsPerPage]);
 
   const paginatedUsers = React.useMemo(() => {
     const startIndex = (currentPage - 1) * rowsPerPage;
@@ -121,7 +133,6 @@ export function UserTable({ users, onViewDetails }: UserTableProps) {
     setSearchQuery('');
     setStatusFilter('all');
     setStepFilter('all');
-    setFrequencyFilter('all');
     setSortField('createdAt');
     setSortOrder('desc');
   };
@@ -141,7 +152,7 @@ export function UserTable({ users, onViewDetails }: UserTableProps) {
   return (
     <div className="space-y-4">
       {/* Sticky Filter Control Panel */}
-      <div className="sticky top-[68px] z-20 backdrop-blur-lg bg-zinc-950/75 border border-zinc-800/80 rounded-xl p-4 transition-all duration-300">
+      <div className="sticky top-[68px] z-20 backdrop-blur-lg bg-white/80 border border-slate-200/80 rounded-xl p-4 shadow-xs transition-all duration-300">
         <div className="flex flex-col gap-4">
           {/* Main search and clear */}
           <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between">
@@ -150,37 +161,37 @@ export function UserTable({ users, onViewDetails }: UserTableProps) {
                 placeholder="Search by Business Name, Phone, or Location..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                icon={<Search className="h-4.5 w-4.5 text-zinc-500" />}
+                icon={<Search className="h-4.5 w-4.5 text-slate-400" />}
               />
             </div>
             
             <div className="flex items-center gap-3">
-              {(searchQuery !== '' || statusFilter !== 'all' || stepFilter !== 'all' || frequencyFilter !== 'all') && (
+              {(searchQuery !== '' || statusFilter !== 'all' || stepFilter !== 'all') && (
                 <Button 
                   variant="outline" 
                   size="sm" 
                   onClick={clearFilters}
-                  className="flex items-center gap-1.5 text-xs border-dashed border-zinc-700 text-zinc-400 hover:text-white"
+                  className="flex items-center gap-1.5 text-xs border-dashed border-slate-300 text-slate-500 hover:text-slate-900"
                 >
                   <RefreshCcw className="h-3.5 w-3.5" />
                   Clear Active Filters
                 </Button>
               )}
-              <div className="text-xs text-zinc-500 font-medium">
+              <div className="text-xs text-slate-500 font-medium">
                 Showing {totalRows} of {users.length} users
               </div>
             </div>
           </div>
 
           {/* Secondary filter dropdowns */}
-          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4 items-center">
+          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 items-center">
             {/* Status Filter */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] uppercase font-bold tracking-wider text-zinc-500">Payment Status</label>
+              <label className="text-[9px] uppercase font-extrabold tracking-wider text-slate-400">Payment Status</label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full bg-zinc-950 border border-zinc-800 hover:border-zinc-700 rounded-lg text-zinc-300 px-3 py-2 text-xs focus:border-violet-500/60 focus:outline-none transition-colors duration-300 cursor-pointer"
+                className="w-full bg-white border border-slate-200 hover:border-slate-350 hover:bg-slate-50/20 rounded-xl text-slate-800 px-3 py-2.5 text-xs font-semibold focus:border-violet-500/60 focus:outline-none focus:ring-2 focus:ring-violet-500/10 shadow-xs transition-all duration-300 cursor-pointer"
               >
                 <option value="all">All Payments</option>
                 <option value="success">Success</option>
@@ -192,11 +203,11 @@ export function UserTable({ users, onViewDetails }: UserTableProps) {
 
             {/* Step Filter */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] uppercase font-bold tracking-wider text-zinc-500">Current Step</label>
+              <label className="text-[9px] uppercase font-extrabold tracking-wider text-slate-400">Current Step</label>
               <select
                 value={stepFilter}
                 onChange={(e) => setStepFilter(e.target.value)}
-                className="w-full bg-zinc-950 border border-zinc-800 hover:border-zinc-700 rounded-lg text-zinc-300 px-3 py-2 text-xs focus:border-violet-500/60 focus:outline-none transition-colors duration-300 cursor-pointer"
+                className="w-full bg-white border border-slate-200 hover:border-slate-350 hover:bg-slate-50/20 rounded-xl text-slate-800 px-3 py-2.5 text-xs font-semibold focus:border-violet-500/60 focus:outline-none focus:ring-2 focus:ring-violet-500/10 shadow-xs transition-all duration-300 cursor-pointer"
               >
                 <option value="all">All Steps</option>
                 {uniqueSteps.map(step => (
@@ -205,45 +216,32 @@ export function UserTable({ users, onViewDetails }: UserTableProps) {
               </select>
             </div>
 
-            {/* Post Frequency Filter */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] uppercase font-bold tracking-wider text-zinc-500">Post Frequency</label>
-              <select
-                value={frequencyFilter}
-                onChange={(e) => setFrequencyFilter(e.target.value)}
-                className="w-full bg-zinc-950 border border-zinc-800 hover:border-zinc-700 rounded-lg text-zinc-300 px-3 py-2 text-xs focus:border-violet-500/60 focus:outline-none transition-colors duration-300 cursor-pointer"
-              >
-                <option value="all">All Frequencies</option>
-                {uniqueFrequencies.map(freq => (
-                  <option key={freq} value={freq}>{freq}</option>
-                ))}
-              </select>
-            </div>
-
             {/* Custom Sort */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] uppercase font-bold tracking-wider text-zinc-500">Sort By</label>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
+              <label className="text-[9px] uppercase font-extrabold tracking-wider text-slate-400">Sort By</label>
+              <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200/60 w-full shadow-xs">
+                <button
+                  type="button"
                   onClick={() => handleSort('createdAt')}
-                  className={`flex-1 flex items-center justify-center gap-1.5 text-xs py-2 px-3 border-zinc-800 hover:bg-zinc-900 ${
-                    sortField === 'createdAt' ? 'border-violet-500/50 bg-violet-950/20 text-violet-300 font-semibold' : 'text-zinc-400'
+                  className={`flex-1 flex items-center justify-center gap-1 text-xs py-1.5 px-2 rounded-lg font-bold transition-all duration-200 cursor-pointer ${
+                    sortField === 'createdAt' 
+                      ? 'bg-white text-violet-750 shadow-xs border-transparent' 
+                      : 'text-slate-500 hover:text-slate-800 bg-transparent border-transparent'
                   }`}
                 >
                   Date {sortField === 'createdAt' && (sortOrder === 'asc' ? '↑' : '↓')}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
+                </button>
+                <button
+                  type="button"
                   onClick={() => handleSort('revenue')}
-                  className={`flex-1 flex items-center justify-center gap-1.5 text-xs py-2 px-3 border-zinc-800 hover:bg-zinc-900 ${
-                    sortField === 'revenue' ? 'border-violet-500/50 bg-violet-950/20 text-violet-300 font-semibold' : 'text-zinc-400'
+                  className={`flex-1 flex items-center justify-center gap-1 text-xs py-1.5 px-2 rounded-lg font-bold transition-all duration-200 cursor-pointer ${
+                    sortField === 'revenue' 
+                      ? 'bg-white text-violet-750 shadow-xs border-transparent' 
+                      : 'text-slate-500 hover:text-slate-800 bg-transparent border-transparent'
                   }`}
                 >
                   Revenue {sortField === 'revenue' && (sortOrder === 'asc' ? '↑' : '↓')}
-                </Button>
+                </button>
               </div>
             </div>
           </div>
@@ -251,124 +249,152 @@ export function UserTable({ users, onViewDetails }: UserTableProps) {
       </div>
 
       {/* Grid Table Layout */}
-      <div className="overflow-hidden rounded-xl border border-zinc-850">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[30%]">Business Details</TableHead>
-              <TableHead className="w-[18%]">Contact (Phone)</TableHead>
-              <TableHead className="w-[18%]">Onboarding Step</TableHead>
-              <TableHead className="w-[16%]">Payment Status</TableHead>
-              <TableHead className="w-[10%] text-right">Revenue</TableHead>
-              <TableHead className="w-[8%] text-center">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginatedUsers.length > 0 ? (
-              paginatedUsers.map((user) => {
-                const businessName = user.registrationData?.businessName || 'Unnamed Business';
-                const location = user.registrationData?.location || 'Unknown location';
-                const paymentStatus = user.payment?.status || 'unpaid';
-                const revenue = user.payment && user.payment.status === 'success' ? (user.payment.amount || 0) / 100 : 0;
-                
-                return (
-                  <TableRow 
-                    key={user._id}
-                    onClick={() => onViewDetails(user)}
-                    className="group cursor-pointer hover:bg-zinc-900/35 active:bg-zinc-900/50 duration-200"
-                  >
-                    {/* Business Name & Location */}
-                    <TableCell>
-                      <div className="flex flex-col gap-0.5">
-                        <span className="font-bold text-white group-hover:text-violet-400 transition-colors duration-300">
-                          {businessName}
-                        </span>
-                        <span className="text-xs text-zinc-500 font-medium">
-                          {location}
-                        </span>
-                      </div>
-                    </TableCell>
-
-                    {/* Contact Phone */}
-                    <TableCell>
-                      <span className="font-mono text-zinc-300">+{user.phoneNumber}</span>
-                    </TableCell>
-
-                    {/* Onboarding step badge */}
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={getStepBadgeVariant(user.currentStep)}>
-                          {user.currentStep}
-                        </Badge>
-                        {user.isCompleted && (
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" title="Onboarding complete" />
-                        )}
-                      </div>
-                    </TableCell>
-
-                    {/* Payment badge */}
-                    <TableCell>
-                      <Badge variant={getPaymentBadgeVariant(paymentStatus)}>
-                        {paymentStatus}
-                      </Badge>
-                    </TableCell>
-
-                    {/* Calculated Revenue */}
-                    <TableCell className="text-right font-mono font-semibold">
-                      {revenue > 0 ? (
-                        <span className="text-emerald-400">
-                          ₹{revenue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                        </span>
-                      ) : (
-                        <span className="text-zinc-500">-</span>
-                      )}
-                    </TableCell>
-
-                    {/* Action trigger */}
-                    <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onViewDetails(user)}
-                        className="opacity-70 group-hover:opacity-100 text-zinc-400 hover:text-white hover:bg-zinc-800/80 cursor-pointer"
-                        title="View Full Profile Details"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })
-            ) : (
-              <TableRow>
-                <TableCell colSpan={6} className="h-48 text-center text-zinc-500">
-                  <div className="flex flex-col items-center justify-center gap-3">
-                    <SlidersHorizontal className="h-8 w-8 text-zinc-700 animate-bounce" />
-                    <div>
-                      <p className="font-semibold text-zinc-400">No matching user records found</p>
-                      <p className="text-xs text-zinc-600 mt-1">Try broadening your search inputs or resetting current filters.</p>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[20%]">Business Details</TableHead>
+            <TableHead className="w-[11%]">Business Type</TableHead>
+            <TableHead className="w-[15%]">Services Details</TableHead>
+            <TableHead className="w-[14%]">Contact (Phone)</TableHead>
+            <TableHead className="w-[14%]">Onboarding Step</TableHead>
+            <TableHead className="w-[12%]">Payment Status</TableHead>
+            <TableHead className="w-[8%] text-right">Revenue</TableHead>
+            <TableHead className="w-[6%] text-center">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {paginatedUsers.length > 0 ? (
+            paginatedUsers.map((user) => {
+              const businessName = user.registrationData?.businessName || 'Unnamed Business';
+              const location = user.registrationData?.location || 'Unknown location';
+              const businessType = user.registrationData?.businessType || 'N/A';
+              const services = user.registrationData?.services || '';
+              const paymentStatus = user.payment?.status || 'unpaid';
+              const revenue = user.payment && user.payment.status === 'success' ? (user.payment.amount || 0) / 100 : 0;
+              
+              return (
+                <TableRow 
+                  key={user._id}
+                  onClick={() => onViewDetails(user)}
+                  className="group cursor-pointer hover:bg-slate-50/80 active:bg-slate-100/80 duration-200"
+                >
+                  {/* Business Name & Location */}
+                  <TableCell>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-semibold text-slate-900 group-hover:text-violet-650 transition-colors duration-300">
+                        {businessName}
+                      </span>
+                      <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
+                        <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                        {location}
+                      </span>
                     </div>
-                    <Button variant="outline" size="sm" onClick={clearFilters} className="mt-2 cursor-pointer border-zinc-800 hover:bg-zinc-900 text-zinc-300">
-                      Reset Search Filters
+                  </TableCell>
+
+                  {/* Business Type */}
+                  <TableCell>
+                    <span className="text-[11px] font-bold text-slate-650 bg-slate-100/80 border border-slate-200/50 px-2.5 py-1 rounded-lg">
+                      {getBusinessTypeName(businessType)}
+                    </span>
+                  </TableCell>
+
+                  {/* Services Details (Truncated & Interactive) */}
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    {services ? (
+                      <button
+                        onClick={() => setSelectedServicesText(services)}
+                        className="text-xs text-left max-w-[130px] truncate text-slate-550 hover:text-violet-600 hover:underline transition-colors font-medium cursor-pointer flex items-center gap-1"
+                        title="Click to view full description"
+                      >
+                        {services}
+                      </button>
+                    ) : (
+                      <span className="text-xs text-slate-400">-</span>
+                    )}
+                  </TableCell>
+
+                  {/* Contact Phone */}
+                  <TableCell>
+                    <span className="font-mono text-xs font-medium text-slate-650 flex items-center gap-1.5">
+                      <Phone className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                      +{user.phoneNumber}
+                    </span>
+                  </TableCell>
+
+                  {/* Onboarding step badge */}
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={getStepBadgeVariant(user.currentStep)}>
+                        {user.currentStep}
+                      </Badge>
+                      {user.isCompleted && (
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" title="Onboarding complete" />
+                      )}
+                    </div>
+                  </TableCell>
+
+                  {/* Payment badge */}
+                  <TableCell>
+                    <Badge variant={getPaymentBadgeVariant(paymentStatus)}>
+                      {paymentStatus}
+                    </Badge>
+                  </TableCell>
+
+                  {/* Calculated Revenue */}
+                  <TableCell className="text-right font-mono font-semibold">
+                    {revenue > 0 ? (
+                      <span className="text-emerald-600 font-bold">
+                        ₹{revenue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      </span>
+                    ) : (
+                      <span className="text-slate-400">-</span>
+                    )}
+                  </TableCell>
+
+                  {/* Action trigger */}
+                  <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onViewDetails(user)}
+                      className="opacity-70 group-hover:opacity-100 text-slate-500 hover:text-slate-900 hover:bg-slate-100 cursor-pointer"
+                      title="View Full Profile Details"
+                    >
+                      <Eye className="h-4 w-4" />
                     </Button>
+                  </TableCell>
+                </TableRow>
+              );
+            })
+          ) : (
+            <TableRow>
+              <TableCell colSpan={8} className="h-48 text-center text-slate-500">
+                <div className="flex flex-col items-center justify-center gap-3">
+                  <SlidersHorizontal className="h-8 w-8 text-slate-350 animate-bounce" />
+                  <div>
+                    <p className="font-semibold text-slate-500">No matching user records found</p>
+                    <p className="text-xs text-slate-400 mt-1">Try broadening your search inputs or resetting current filters.</p>
                   </div>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+                  <Button variant="outline" size="sm" onClick={clearFilters} className="mt-2 cursor-pointer border-slate-200 hover:bg-slate-50 text-slate-600">
+                    Reset Search Filters
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
 
       {/* Pagination Footer Controls */}
       {totalRows > 0 && (
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border border-zinc-850 rounded-xl bg-zinc-950/20">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border border-slate-200 rounded-xl bg-white shadow-sm">
           {/* Rows per page toggle */}
-          <div className="flex items-center gap-2 text-xs text-zinc-500">
+          <div className="flex items-center gap-2 text-xs text-slate-500">
             <span>Show rows per page:</span>
             <select
               value={rowsPerPage}
               onChange={(e) => setRowsPerPage(Number(e.target.value))}
-              className="bg-zinc-950 border border-zinc-800 rounded px-1.5 py-1 text-zinc-400 focus:outline-none cursor-pointer"
+              className="bg-white border border-slate-200 rounded px-1.5 py-1 text-slate-650 focus:outline-none cursor-pointer"
             >
               <option value={5}>5</option>
               <option value={10}>10</option>
@@ -379,8 +405,8 @@ export function UserTable({ users, onViewDetails }: UserTableProps) {
 
           {/* Navigation buttons */}
           <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto">
-            <span className="text-xs text-zinc-400">
-              Page <strong className="text-white">{currentPage}</strong> of <strong className="text-white">{totalPages}</strong>
+            <span className="text-xs text-slate-500">
+              Page <strong className="text-slate-800">{currentPage}</strong> of <strong className="text-slate-800">{totalPages}</strong>
             </span>
             <div className="flex items-center gap-1.5">
               <Button
@@ -388,7 +414,7 @@ export function UserTable({ users, onViewDetails }: UserTableProps) {
                 size="icon"
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className="h-8 w-8 rounded-lg cursor-pointer border-zinc-800 hover:bg-zinc-900 disabled:opacity-30"
+                className="h-8 w-8 rounded-lg cursor-pointer border-slate-200 hover:bg-slate-50 disabled:opacity-30"
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
@@ -397,9 +423,50 @@ export function UserTable({ users, onViewDetails }: UserTableProps) {
                 size="icon"
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
-                className="h-8 w-8 rounded-lg cursor-pointer border-zinc-800 hover:bg-zinc-900 disabled:opacity-30"
+                className="h-8 w-8 rounded-lg cursor-pointer border-slate-200 hover:bg-slate-50 disabled:opacity-30"
               >
                 <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Services Popup Modal Overlay */}
+      {selectedServicesText !== null && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fade-in"
+          onClick={() => setSelectedServicesText(null)}
+        >
+          <div 
+            className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-md w-full overflow-hidden p-6 animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-violet-50 text-violet-650 border border-violet-100">
+                  <Briefcase className="h-4 w-4" />
+                </div>
+                <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider">
+                  Services Details
+                </h3>
+              </div>
+              <button
+                onClick={() => setSelectedServicesText(null)}
+                className="p-1 rounded-lg border border-slate-205 border-slate-200 bg-slate-50 text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/60 text-xs font-semibold text-slate-600 leading-relaxed whitespace-pre-line max-h-60 overflow-y-auto scrollbar-thin">
+              {selectedServicesText}
+            </div>
+            <div className="mt-5 flex justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setSelectedServicesText(null)}
+                className="cursor-pointer font-bold border-slate-200 hover:bg-slate-50"
+              >
+                Close details
               </Button>
             </div>
           </div>

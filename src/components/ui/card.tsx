@@ -8,7 +8,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
     <div
       ref={ref}
       className={cn(
-        'rounded-xl border border-zinc-800 bg-zinc-950/60 text-zinc-100 shadow-xl backdrop-blur-md transition-all duration-300 hover:border-zinc-700/50',
+        'rounded-xl border border-slate-200 bg-white text-slate-800 shadow-sm transition-all duration-300 hover:border-violet-200 hover:shadow-md hover:-translate-y-0.5',
         className
       )}
       {...props}
@@ -32,7 +32,7 @@ export const CardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttrib
   ({ className, ...props }, ref) => (
     <h3
       ref={ref}
-      className={cn('font-semibold text-lg leading-none tracking-tight text-white', className)}
+      className={cn('font-semibold text-lg leading-none tracking-tight text-slate-900', className)}
       {...props}
     />
   )
@@ -43,7 +43,7 @@ export const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTML
   ({ className, ...props }, ref) => (
     <p
       ref={ref}
-      className={cn('text-sm text-zinc-400', className)}
+      className={cn('text-sm text-slate-500', className)}
       {...props}
     />
   )
@@ -61,7 +61,7 @@ export const CardFooter = React.forwardRef<HTMLDivElement, CardProps>(
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn('flex items-center p-6 pt-0 border-t border-zinc-800/40', className)}
+      className={cn('flex items-center p-6 pt-0 border-t border-slate-100', className)}
       {...props}
     />
   )

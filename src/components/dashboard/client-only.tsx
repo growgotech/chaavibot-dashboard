@@ -12,7 +12,7 @@ export default function ClientOnly({ children }: { children: React.ReactNode }) 
   if (!hasMounted) {
     // Render a clean dark loading container matching the dashboard background
     // to prevent any visual flicker during hydration.
-    return <div className="min-h-screen bg-zinc-950" />;
+    return <div className="min-h-screen bg-slate-50" />;
   }
 
   return <>{children}</>;

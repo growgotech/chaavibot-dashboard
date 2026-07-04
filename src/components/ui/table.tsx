@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 
 export const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
   ({ className, ...props }, ref) => (
-    <div className="relative w-full overflow-auto rounded-lg border border-zinc-800 bg-zinc-950/40 backdrop-blur-md">
+    <div className="relative w-full overflow-auto rounded-lg border border-slate-200 bg-white shadow-sm">
       <table
         ref={ref}
         className={cn('w-full caption-bottom text-sm border-collapse', className)}
@@ -16,7 +16,7 @@ Table.displayName = 'Table';
 
 export const TableHeader = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(
   ({ className, ...props }, ref) => (
-    <thead ref={ref} className={cn('border-b border-zinc-800/80 bg-zinc-900/30', className)} {...props} />
+    <thead ref={ref} className={cn('border-b border-slate-200 bg-slate-50/75', className)} {...props} />
   )
 );
 TableHeader.displayName = 'TableHeader';
@@ -37,7 +37,7 @@ export const TableRow = React.forwardRef<HTMLTableRowElement, React.HTMLAttribut
     <tr
       ref={ref}
       className={cn(
-        'border-b border-zinc-800/50 transition-colors hover:bg-zinc-900/30 data-[state=selected]:bg-zinc-800/40',
+        'border-b border-slate-100 transition-colors hover:bg-slate-50/80 data-[state=selected]:bg-slate-100/50',
         className
       )}
       {...props}
@@ -51,7 +51,7 @@ export const TableHead = React.forwardRef<HTMLTableCellElement, React.ThHTMLAttr
     <th
       ref={ref}
       className={cn(
-        'h-12 px-4 text-left align-middle font-semibold text-zinc-400 [&:has([role=checkbox])]:pr-0 tracking-wider text-xs uppercase',
+        'h-12 px-4 text-left align-middle font-semibold text-slate-500 [&:has([role=checkbox])]:pr-0 tracking-wider text-xs uppercase',
         className
       )}
       {...props}
@@ -64,7 +64,7 @@ export const TableCell = React.forwardRef<HTMLTableCellElement, React.TdHTMLAttr
   ({ className, ...props }, ref) => (
     <td
       ref={ref}
-      className={cn('p-4 align-middle [&:has([role=checkbox])]:pr-0 text-zinc-300', className)}
+      className={cn('p-4 align-middle [&:has([role=checkbox])]:pr-0 text-slate-700', className)}
       {...props}
     />
   )

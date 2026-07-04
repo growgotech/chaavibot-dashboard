@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --background: #09090b; /* zinc-950 */
-  --foreground: #f4f4f5; /* zinc-100 */
+  --background: #f8fafc; /* slate-50 */
+  --foreground: #0f172a; /* slate-900 */
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans), Arial, Helvetica, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-sans: var(--font-plus-jakarta), sans-serif;
+  --font-mono: var(--font-jetbrains-mono), monospace;
 }
 
 body {
@@ -50,21 +50,21 @@ body {
 
 /* --- Custom Custom Scrollbars for Tables and Drawers --- */
 .scrollbar-thin::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 
 .scrollbar-thin::-webkit-scrollbar-track {
-  background: rgba(9, 9, 11, 0.4);
+  background: rgba(241, 245, 249, 0.6); /* slate-100 */
   border-radius: 9999px;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: rgba(39, 39, 42, 0.8);
+  background: rgba(203, 213, 225, 0.8); /* slate-300 */
   border-radius: 9999px;
-  border: 1px solid rgba(9, 9, 11, 0.4);
+  border: 1.5px solid rgba(241, 245, 249, 0.6);
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: rgba(63, 63, 70, 0.9);
+  background: rgba(148, 163, 184, 0.9); /* slate-400 */
 }
