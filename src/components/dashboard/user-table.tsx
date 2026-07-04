@@ -357,7 +357,7 @@ export function UserTable({ users, onViewDetails }: UserTableProps) {
                     <div className="flex items-center justify-center gap-1.5">
                       {/* Image Preview Action */}
                       {(() => {
-                        const imgUrl = user.registrationData?.posterS3Url;
+                        const imgUrl = user.posterS3Url;
                         const hasImg = !!imgUrl;
                         return (
                           <Button

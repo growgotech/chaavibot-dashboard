@@ -9,7 +9,6 @@ export interface UserRegistrationData {
   logoPath: string | null;
   logoUrl: string | null;
   postFrequency: string;
-  posterS3Url?: string | null;  // S3 preview URL key inside registration data
 }
 
 export interface UserPayment {
@@ -33,6 +32,7 @@ export interface User {
   isCompleted: boolean;
   lastInboundMessageAt: string;
   lastPromoTemplateSentAt: string | null;
+  posterS3Url?: string | null; // S3 preview URL key at root level (parallel to lastPromoTemplateSentAt)
   completedAt: string | null;
   createdAt: string;
   updatedAt: string;
