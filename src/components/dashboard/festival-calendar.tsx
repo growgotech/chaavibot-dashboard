@@ -5,37 +5,84 @@ import { CalendarDays, Sparkles, X, ChevronLeft, ChevronRight, Gift } from 'luci
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
-// Major Indian festivals with their static dates for 2026/2027
-const FESTIVALS_LIST = [
-  { name: 'Raksha Bandhan', date: '2026-08-28', icon: '📿' },
-  { name: 'Janmashtami', date: '2026-09-04', icon: '🏺' },
-  { name: 'Ganesh Chaturthi', date: '2026-09-14', icon: '🐘' },
-  { name: 'Dussehra', date: '2026-10-20', icon: '🏹' },
-  { name: 'Dhanteras', date: '2026-11-06', icon: '💰' },
-  { name: 'Diwali', date: '2026-11-08', icon: '🪔' },
-  { name: 'Bhai Dooj', date: '2026-11-10', icon: '🌸' },
-  { name: 'Guru Nanak Jayanti', date: '2026-11-24', icon: '🕌' },
-  { name: 'Christmas', date: '2026-12-25', icon: '🎄' },
-  { name: 'New Year', date: '2027-01-01', icon: '🎆' },
-  { name: 'Republic Day', date: '2027-01-26', icon: '🇮🇳' },
-  { name: 'Maha Shivratri', date: '2027-03-06', icon: '🔱' },
-  { name: 'Holi', date: '2027-03-22', icon: '🎨' },
-];
+interface Festival {
+  name: string;
+  startMonth: number;
+  startDay: number;
+  endMonth: number;
+  endDay: number;
+  wish: string;
+  vibe: string;
+}
+
+// Maps keywords in festival names to premium emoji icons dynamically
+const getFestivalEmoji = (name: string): string => {
+  const n = name.toLowerCase();
+  if (n.includes('new year')) return '🎆';
+  if (n.includes('pongal') || n.includes('sankranti')) return '🪁';
+  if (n.includes('republic') || n.includes('independence')) return '🇮🇳';
+  if (n.includes('shivratri') || n.includes('shiva')) return '🔱';
+  if (n.includes('holi')) return '🎨';
+  if (n.includes('eid')) return '🌙';
+  if (n.includes('ram navami')) return '🏹';
+  if (n.includes('easter') || n.includes('good friday')) return '✝️';
+  if (n.includes('raksha') || n.includes('rakhi')) return '📿';
+  if (n.includes('janmashtami') || n.includes('krishna')) return '🏺';
+  if (n.includes('ganesh') || n.includes('vinayaka')) return '🐘';
+  if (n.includes('gandhi')) return '👓';
+  if (n.includes('dussehra') || n.includes('ramayana')) return '🏹';
+  if (n.includes('halloween')) return '🎃';
+  if (n.includes('diwali') || n.includes('deepavali')) return '🪔';
+  if (n.includes('guru nanak') || n.includes('gurpurab')) return '🕌';
+  if (n.includes('christmas')) return '🎄';
+  return '🎉';
+};
 
 export function FestivalCalendar() {
+  const [festivals, setFestivals] = React.useState<Festival[]>([]);
+  const [loading, setLoading] = React.useState(true);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   
-  // Starting month for calendar grid view (August 2026 is month index 7)
-  const [viewYear, setViewYear] = React.useState(2026);
-  const [viewMonth, setViewMonth] = React.useState(7); // 0-indexed, so 7 = August
+  // Starting month for calendar grid view (starts at current month/year)
+  const [viewYear, setViewYear] = React.useState(() => new Date().getFullYear());
+  const [viewMonth, setViewMonth] = React.useState(() => new Date().getMonth());
 
+  // Fetch live festivals from Next.js server proxy route
+  React.useEffect(() => {
+    const loadFestivals = async () => {
+      try {
+        const res = await fetch('/api/festivals');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.festivals) {
+            setFestivals(data.festivals);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load festivals client-side:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadFestivals();
+  }, []);
+
+  // Compute countdowns dynamically relative to today
   const upcomingFestivals = React.useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const currentYear = today.getFullYear();
 
-    return FESTIVALS_LIST.map((fest) => {
-      const festDate = new Date(fest.date);
+    return festivals.map((fest) => {
+      // Build date project object for current year
+      let festDate = new Date(currentYear, fest.startMonth, fest.startDay);
       festDate.setHours(0, 0, 0, 0);
+
+      // If it has already elapsed this year, project to the next calendar cycle year
+      if (festDate.getTime() < today.getTime()) {
+        festDate = new Date(currentYear + 1, fest.startMonth, fest.startDay);
+        festDate.setHours(0, 0, 0, 0);
+      }
 
       const diffTime = festDate.getTime() - today.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -48,12 +95,12 @@ export function FestivalCalendar() {
           month: 'short',
           year: 'numeric',
         }),
+        icon: getFestivalEmoji(fest.name),
       };
     })
-      .filter((fest) => fest.daysLeft >= 0)
-      .sort((a, b) => a.daysLeft - b.daysLeft)
-      .slice(0, 5);
-  }, []);
+      .sort((a, b) => a.daysLeft - b.daysLeft) // Sort chronologically closest
+      .slice(0, 5); // Take top 5
+  }, [festivals]);
 
   const getCountdownBadgeStyle = (daysLeft: number) => {
     if (daysLeft === 0) {
@@ -86,12 +133,15 @@ export function FestivalCalendar() {
       const padMonth = String(viewMonth + 1).padStart(2, '0');
       const dateStr = `${viewYear}-${padMonth}-${padDay}`;
       
-      const festival = FESTIVALS_LIST.find(f => f.date === dateStr) || null;
+      // Match festival strictly by month index & day value
+      const matchedFest = festivals.find(f => f.startMonth === viewMonth && f.startDay === d) || null;
+      const festival = matchedFest ? { ...matchedFest, icon: getFestivalEmoji(matchedFest.name) } : null;
+      
       days.push({ day: d, dateStr, festival });
     }
     
     return days;
-  }, [viewMonth, viewYear]);
+  }, [viewMonth, viewYear, festivals]);
 
   const monthLabel = React.useMemo(() => {
     return new Date(viewYear, viewMonth).toLocaleDateString('en-IN', {
@@ -119,11 +169,44 @@ export function FestivalCalendar() {
   };
 
   const monthFestivals = React.useMemo(() => {
-    return FESTIVALS_LIST.filter(fest => {
-      const d = new Date(fest.date);
-      return d.getFullYear() === viewYear && d.getMonth() === viewMonth;
-    });
-  }, [viewMonth, viewYear]);
+    return festivals.filter(fest => fest.startMonth === viewMonth).map(fest => ({
+      ...fest,
+      icon: getFestivalEmoji(fest.name)
+    }));
+  }, [viewMonth, festivals]);
+
+  // Loading skeleton block to prevent hydration jumps
+  if (loading) {
+    return (
+      <Card className="h-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-slate-350">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-2 border-b border-slate-100 pb-4 mb-4">
+            <div className="p-2 rounded-lg bg-violet-50 text-violet-650 border border-violet-100 animate-pulse">
+              <CalendarDays className="h-4.5 w-4.5 animate-spin-slow" />
+            </div>
+            <div className="space-y-1.5 flex-1">
+              <div className="h-4 bg-slate-200 rounded-md w-1/3 animate-pulse" />
+              <div className="h-3 bg-slate-100 rounded-md w-1/4 animate-pulse" />
+            </div>
+          </div>
+          <div className="space-y-3.5">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex items-center justify-between py-2">
+                <div className="flex items-center gap-3 w-2/3">
+                  <div className="h-6 w-6 bg-slate-100 rounded-full animate-pulse" />
+                  <div className="space-y-1.5 flex-1">
+                    <div className="h-3.5 bg-slate-100/80 rounded-md w-3/4 animate-pulse" />
+                    <div className="h-2.5 bg-slate-50/50 rounded-md w-1/2 animate-pulse" />
+                  </div>
+                </div>
+                <div className="h-6 w-16 bg-slate-50 rounded-lg animate-pulse" />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <>
@@ -279,7 +362,7 @@ export function FestivalCalendar() {
               ) : (
                 <div className="space-y-2 max-h-32 overflow-y-auto pr-1 scrollbar-thin">
                   {monthFestivals.map((fest, idx) => {
-                    const dStr = new Date(fest.date).toLocaleDateString('en-IN', {
+                    const dStr = new Date(viewYear, fest.startMonth, fest.startDay).toLocaleDateString('en-IN', {
                       day: 'numeric',
                       month: 'short'
                     });
