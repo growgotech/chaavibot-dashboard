@@ -4,7 +4,7 @@ import * as React from 'react';
 import { 
   Search, Filter, ChevronLeft, ChevronRight, Eye, 
   ArrowUpDown, RefreshCcw, Landmark, SlidersHorizontal,
-  MapPin, Phone, Briefcase, X, Image as ImageIcon
+  MapPin, Phone, Briefcase, X, Sparkles
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -370,9 +370,9 @@ export function UserTable({ users, onViewDetails }: UserTableProps) {
                                 ? 'text-violet-650 hover:text-violet-750 hover:bg-violet-50' 
                                 : 'text-slate-350 disabled:opacity-30 disabled:hover:bg-transparent cursor-not-allowed'
                             }`}
-                            title={hasImg ? "Preview daily sent image" : "No sent image available"}
+                            title={hasImg ? "Preview daily sent poster artwork" : "No sent artwork available"}
                           >
-                            <ImageIcon className="h-4 w-4" />
+                            <Sparkles className="h-4 w-4" />
                           </Button>
                         );
                       })()}
@@ -510,7 +510,7 @@ export function UserTable({ users, onViewDetails }: UserTableProps) {
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
               <div className="flex items-center gap-2">
                 <div className="p-1.5 rounded-lg bg-violet-50 text-violet-650 border border-violet-100">
-                  <ImageIcon className="h-4 w-4" />
+                  <Sparkles className="h-4 w-4" />
                 </div>
                 <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider">
                   Sent Content Preview
